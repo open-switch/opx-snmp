@@ -1,4 +1,4 @@
-Source: python-opx-snmp
+Source: opx-snmp
 Section: net
 Priority: optional
 Maintainer: Dell EMC <ops-dev@lists.openswitch.net>

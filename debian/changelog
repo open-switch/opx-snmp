@@ -1,4 +1,10 @@
-python-opx-snmp (1.0.0) unstable; urgency=medium
+opx-snmp (1.0.1) unstable; urgency=medium
+
+  * Rename source package.
+
+ -- Dell EMC <ops-dev@lists.openswitch.net>  Fri, 23 Mar 2018 09:45:22 -0800
+
+opx-snmp (1.0.0) unstable; urgency=medium
 
   * Initial release.
 
