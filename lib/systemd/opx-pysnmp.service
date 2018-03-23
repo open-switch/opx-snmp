@@ -1,0 +1,18 @@
+[Unit]
+Description=PySNMP agent
+After=opx-cps.service
+Wants=opx-cps.service
+DefaultDependencies=no
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/opx/opx-environment
+ExecStart=/usr/sbin/SNMPAgent
+KillSignal=SIGKILL
+SuccessExitStatus=SIGKILL
+
+# Resource Limitations
+LimitCORE=infinity
+
+[Install]
+WantedBy=multi-user.target
