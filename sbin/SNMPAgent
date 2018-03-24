@@ -93,6 +93,9 @@ class SNMPAgent():
 			if (not all(module)):
 				raise error.NoSuchInstanceError(name=name)	
 			else:
+                                if handler_key not in agent_handlers:
+					raise error.NoSuchObjectError(name=name)
+
 				ret = agent_handlers[handler_key][0](module[0],name)
 				if ret is None:
 					raise error.NoSuchInstanceError(name=name)	
@@ -106,6 +109,9 @@ class SNMPAgent():
 			module = oi.getMibSymbol()
 
 			handler_key = module[0:2]
+
+                        if handler_key not in agent_handlers:
+                                raise error.NoSuchObjectError(name=name)
 
 			if (not all(module)):
 				ret = agent_handlers[handler_key][1](module[0],name)
