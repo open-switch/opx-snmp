@@ -1,4 +1,3 @@
-
 ###########################################################################
 #
 # Handlers for Interface MIB (IF-MIB)
@@ -10,7 +9,7 @@ import cps_utils
 import cps_object
 
 from pysnmp.proto.api import v2c
-from pysnmp.proto.rfc1902 import Integer
+from pysnmp.proto.rfc1902 import Integer, Gauge32, TimeTicks, Counter32
 
 from opx_snmp.handler_utils import *
 
@@ -31,13 +30,9 @@ def if_name_get(idx, nextf):
                 )
     if r is None or len(r) == 0:
         return None
-    r = r[0]['data']
-    return (cps_utils.cps_attr_types_map.from_data('dell-base-if-cmn/if/interfaces/interface/if-index',
-                                                   r['dell-base-if-cmn/if/interfaces/interface/if-index']
-                                               ),
-            cps_utils.cps_attr_types_map.from_data('if/interfaces/interface/name',
-                                                   r.get('cps/key_data', r)['if/interfaces/interface/name']
-                                               )
+    r = r[0]
+    return (cps_key_attr_data_get(r, 'dell-base-if-cmn/if/interfaces/interface/if-index'),
+            cps_key_attr_data_get(r, 'if/interfaces/interface/name')
             )
     
 ###########################################################################
@@ -54,10 +49,10 @@ def if_name_map(nm):
         return 'mgmt1/1/{0}'.format(int(nm[3:]) + 1)
     if nm.find('br') == 0:
         return nm.replace('br', 'vlan', 1)
-    if nm.find('bo') == 0:
-        return nm.replace('bo', 'port-channel', 1)
+    if nm.find('bond') == 0:
+        return nm.replace('bond', 'port-channel', 1)
     if nm.find('lo') == 0:
-        return nm.replace('bo', 'loopback', 1)
+        return nm.replace('lo', 'loopback', 1)
     s = nm.split('-')
     result = 'ethernet{0}/{1}/{2}'.format(int(s[0][1], 16),
                                           s[0][2:].lstrip('0'),
@@ -92,12 +87,13 @@ def _if_idx_get(idx, nextf):
         k['dell-base-if-cmn/if/interfaces/interface/if-index'] = idx
     if nextf:
         k['cps/object-group/get-next'] = 1
-    r = cps_attrs_get('target',
-                      'dell-base-if-cmn/if/interfaces/interface',
-                      k,
-                      ['dell-base-if-cmn/if/interfaces/interface/if-index']
-                      )
-    return None if r is None else r[0]
+    r = cps_get('target',
+                'dell-base-if-cmn/if/interfaces/interface',
+                k
+                )
+    if r is None or len(r) == 0:
+        return None
+    return cps_key_attr_data_get(r[0], 'dell-base-if-cmn/if/interfaces/interface/if-index')
 
 
 def if_idx_get(module, name):
@@ -164,14 +160,16 @@ def _if_type_get(idx, nextf):
         k['dell-base-if-cmn/if/interfaces/interface/if-index'] = idx
     if nextf:
         k['cps/object-group/get-next'] = 1
-    r = cps_attrs_get('target',
-                      'dell-base-if-cmn/if/interfaces/interface',
-                      k,
-                      ['dell-base-if-cmn/if/interfaces/interface/if-index',
-                       'if/interfaces/interface/type'
-                      ]
-    )
-    return None if r is None else (r[0], Integer(if_type_map.get(r[1], IANAIFTYPE_OTHER)))
+    r = cps_get('target',
+                'dell-base-if-cmn/if/interfaces/interface',
+                k
+                )
+    if r is None or len(r) == 0:
+        return None
+    r = r[0]
+    return (cps_key_attr_data_get(r, 'dell-base-if-cmn/if/interfaces/interface/if-index'),
+            Integer(if_type_map.get(cps_attr_data_get(r, 'if/interfaces/interface/type') , IANAIFTYPE_OTHER))
+            )
 
 
 def if_type_get(module, name):
@@ -196,18 +194,18 @@ def _if_mtu_get(idx, nextf):
         k['dell-base-if-cmn/if/interfaces/interface/if-index'] = idx
     if nextf:
         k['cps/object-group/get-next'] = 1
-    r = cps_attrs_get('target',
-                      'dell-base-if-cmn/if/interfaces/interface',
-                      k,
-                      ['dell-base-if-cmn/if/interfaces/interface/if-index',
-                       'dell-if/if/interfaces/interface/mtu'
-                      ]
-    )
-    if r is None:
+    r = cps_get('target',
+                'dell-base-if-cmn/if/interfaces/interface',
+                k)
+    if r is None or len(r) == 0:
         return None
-    if r[1] is None:
-        return (r[0], Integer(0))
-    return (r[0], Integer(r[1]))
+    r = r[0]
+    mtu = cps_attr_data_get(r, 'dell-if/if/interfaces/interface/mtu')
+    if mtu is None:
+        mtu = 0
+    return (cps_key_attr_data_get(r, 'dell-base-if-cmn/if/interfaces/interface/if-index'),
+            Integer(mtu)
+        )
 
 
 def if_mtu_get(module, name):
@@ -226,18 +224,22 @@ def if_mtu_get_next(module, name):
 # Get interface speed
 #
 
+max_speed = 2**32 - 1
+
 def _if_speed_get(idx, nextf):
     idx = _if_idx_get(idx, nextf)
     if idx is None:
         return None
-    r = cps_attrs_get('observed',
-                      'dell-base-if-cmn/if/interfaces-state/interface',
-                      {'if/interfaces-state/interface/if-index': idx}, 
-                      ['if/interfaces-state/interface/speed']
-    )
-    if r is None:
-        r = [0]
-    return (idx, Integer(r[0]))
+    r = cps_get('observed',
+                'dell-base-if-cmn/if/interfaces-state/interface',
+                {'if/interfaces-state/interface/if-index': idx}
+                )
+    speed = None if r is None else cps_attr_data_get(r[0], 'if/interfaces-state/interface/speed')
+    if speed is None:
+        speed = 0
+    elif speed > max_speed:
+        speed = max_speed
+    return (idx, Gauge32(speed))
 
 
 def if_speed_get(module, name):
@@ -262,18 +264,20 @@ def _if_phys_addr_get(idx, nextf):
         k['dell-base-if-cmn/if/interfaces/interface/if-index'] = idx
     if nextf:
         k['cps/object-group/get-next'] = 1
-    r = cps_attrs_get('target',
-                      'dell-base-if-cmn/if/interfaces/interface',
-                      k,
-                      ['dell-base-if-cmn/if/interfaces/interface/if-index',
-                       'dell-if/if/interfaces/interface/phys-address'
-                      ]
-    )
-    if r is None:
+    r = cps_get('target',
+                'dell-base-if-cmn/if/interfaces/interface',
+                k
+                )
+    if r is None or len(r) == 0:
         return None
-    if r[1] is None:
-        return (r[0], v2c.OctetString([]))
-    return (r[0], v2c.OctetString(map(lambda x: int(x, 16), r[1].split(':'))))
+    r = r[0]
+    phys_addr = cps_attr_data_get(r, 'dell-if/if/interfaces/interface/phys-address');
+    if phys_addr is None:
+        phys_addr = ''
+    phys_addr = [] if phys_addr == '' else map(lambda x: int(x, 16), phys_addr.split(':'))
+    return (cps_key_attr_data_get(r, 'dell-base-if-cmn/if/interfaces/interface/if-index'),
+            v2c.OctetString(phys_addr)
+            )
 
             
 def if_phys_addr_get(module, name):
@@ -296,12 +300,14 @@ def _if_admin_status_get(idx, nextf):
     idx = _if_idx_get(idx, nextf)
     if idx is None:
         return None
-    r = cps_attrs_get('observed',
-                      'dell-base-if-cmn/if/interfaces-state/interface',
-                      {'if/interfaces-state/interface/if-index': idx}, 
-                      ['if/interfaces-state/interface/admin-status']
-    )
-    return (idx, Integer(1 if r is None else r[0]))
+    r = cps_get('observed',
+                'dell-base-if-cmn/if/interfaces-state/interface',
+                {'if/interfaces-state/interface/if-index': idx}
+                )
+    admin_status = None if r is None else cps_attr_data_get(r[0], 'if/interfaces-state/interface/admin-status')
+    if admin_status is None:
+        admin_status = 1
+    return (idx, Integer(admin_status))
 
 
 def if_admin_status_get(module, name):
@@ -324,12 +330,14 @@ def _if_oper_status_get(idx, nextf):
     idx = _if_idx_get(idx, nextf)
     if idx is None:
         return None
-    r = cps_attrs_get('observed',
-                      'dell-base-if-cmn/if/interfaces-state/interface',
-                      {'if/interfaces-state/interface/if-index': idx}, 
-                      ['if/interfaces-state/interface/oper-status']
-    )
-    return (idx, Integer(1 if r is None else r[0]))
+    r = cps_get('observed',
+                'dell-base-if-cmn/if/interfaces-state/interface',
+                {'if/interfaces-state/interface/if-index': idx}
+                )
+    oper_status = None if r is None else cps_attr_data_get(r[0], 'if/interfaces-state/interface/oper-status')
+    if oper_status is None:
+        oper_status = 1
+    return (idx, Integer(oper_status))
 
 
 def if_oper_status_get(module, name):
@@ -351,7 +359,7 @@ def if_oper_status_get_next(module, name):
 
 def if_last_change(idx, nextf):
     idx = _if_idx_get(idx, nextf)
-    return None if idx is None else (idx, Integer(0))
+    return None if idx is None else (idx, TimeTicks(0))
 
 def if_last_change_get(module, name):
     return result_get(name, if_last_change(name[-1], False))
@@ -369,28 +377,30 @@ def if_last_change_get_next(module, name):
 # Get a statistics counters
 #
 
+max_cntr = 2**32 - 1
+
 def if_stat_get(idx, nextf, attr):
     r = if_name_get(idx, nextf)
     if r is None:
         return None
     if_idx  = r[0]
     if_name = r[1]
-    if if_name.find('bo') == 0:
+    if if_name.find('bond') == 0:
         return if_stat_lag_get(if_idx, if_name, attr)
-    r = cps_attrs_get('observed',
-                      'dell-base-if-cmn/if/interfaces-state/interface/statistics',
-                      {'if/interfaces-state/interface/name': if_name},
-                      ['if/interfaces-state/interface/statistics/' + attr]
-                  )
-    if r is None:
-        r = [0]
-    elif r == []:
-        r += [0]
-    return (if_idx, Integer(r[0]))
+    r = cps_get('observed',
+                'dell-base-if-cmn/if/interfaces-state/interface/statistics',
+                {'if/interfaces-state/interface/name': if_name}
+                )
+    cntr = None if r is None else cps_attr_data_get(r[0], 'if/interfaces-state/interface/statistics/' + attr)
+    if cntr is None:
+        cntr = 0
+    elif cntr > max_cntr:
+        cntr = cntr & max_cntr    
+    return (if_idx, Counter32(cntr))
 
 
 def if_stat_lag_get(if_idx, if_name, attr):
-    return (if_idx, 0)                    # TBD; must aggregate stats from LAG members
+    return (if_idx, Counter32(0)) # TBD; must aggregate stats from LAG members
 
 
 def if_in_octets_get(module, name):
