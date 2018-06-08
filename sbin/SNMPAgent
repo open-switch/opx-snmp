@@ -93,10 +93,10 @@ class SNMPAgent:
         # our variables will subclass this since we only have table types
         # can't load this type directly, need to import it
 
-        (MibTable, 
-	MibTableRow, 
-	MibTableColumn, 
-	MibScalar,
+        (MibTable,
+        MibTableRow,
+        MibTableColumn,
+        MibScalar,
         MibScalarInstance) = mibBuilder.importSymbols(
         'SNMPv2-SMI',
         'MibTable',
@@ -104,7 +104,7 @@ class SNMPAgent:
         'MibTableColumn',
         'MibScalar',
         'MibScalarInstance'
-	)
+        )
 
         class CustomMibScalarInstance(MibScalarInstance):
 

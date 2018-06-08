@@ -61,5 +61,3 @@ handlers = (
     (('SNMPv2-MIB', 'sysObjectID'), sys_value_get),
     )
 
-
-
