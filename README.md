@@ -87,7 +87,7 @@ core agent:                        /usr/sbin/SNMPAgent
 
 
 
-##Implemented mibs:
+## Implemented mibs:
 
 
 
@@ -103,7 +103,7 @@ interface table
 
 
 
-Add your own MIB
+## Add your own MIB
 
 
 
@@ -111,16 +111,16 @@ Add your own MIB
 
 
 
-Compile your standard or proprietary MIB using
+-Compile your standard or proprietary MIB using
 the compiler provided by PySNMP mibdump.py.  This generates an xyz-mib.py
 file, which is a pythonized form of the MIB that the PySNMP engine can
 understand.
 
-Place the generated xyz-mib.py file in the
+-Place the generated xyz-mib.py file in the
 location known to PySNMP (in the /usr/lib/python2.7/dist-packages/opx-snmp
 directory). 
 
-Replace all references to MibTableColumn with CustomMibTableColumn
+-Replace all references to MibTableColumn with CustomMibTableColumn
 in the generated xyz-mib.py file. Use the IF-MIB.py file in the same directory
 as an example. This step ensures that when a get or getnext request is
 received, it is redirected to your custom function, so that you can call the
