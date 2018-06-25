@@ -17,7 +17,7 @@ traps, snmpsets etc.
 
 
 
-Code organization
+##Code organization
 
 
 
@@ -59,7 +59,7 @@ this is where the bulk of the code changes are expected.
 
 
 
-Code location on switch
+##Code location on switch
 
 
 
@@ -87,7 +87,7 @@ core agent:                        /usr/sbin/SNMPAgent
 
 
 
-Implemented mibs:
+##Implemented mibs:
 
 
 
