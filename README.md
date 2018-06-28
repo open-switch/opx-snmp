@@ -2,14 +2,7 @@
 
 
 
-This document describes SNMP agent implementation for
-OPX.  The engine used is PySNMP, which is
-a lightweight Python-based extensible agent with rich functionality.  The agent implementation is also in Python.
-Version 2 is currently supported, and will continue to be the default version
-of the agent.  Version 3 support will be
-available in the next release. The infrastructure supports implementation of
-any number of standard and proprietary mibs, and users can extend it to support
-traps, snmpsets etc.
+This document describes SNMP agent implementation for OPX.  The engine used is PySNMP, which is a lightweight Python-based extensible agent with rich functionality.  The agent implementation is also in Python. Version 2 is currently supported, and will continue to be the default version of the agent.  Version 3 support will be available in the next release. The infrastructure supports implementation of any number of standard and proprietary mibs, and users can extend it to support traps, snmpsets etc.
 
 
 
@@ -67,19 +60,19 @@ this is where the bulk of the code changes are expected.
 
 
 
-compiled MIPS:                 /usr/lib/python2.7/dist-packages/opx-snmp
+Compiled MIBS:                 /usr/lib/python2.7/dist-packages/opx-snmp
 
 
 
-handlers:                            /usr/lib/python2.7/dist-packages/opx-snmp
+Handlers:                            /usr/lib/python2.7/dist-packages/opx-snmp
 
 
 
-handlers utilities:              /usr/lib/python2.7/dist-packages/opx-snmp
+Handlers utilities:              /usr/lib/python2.7/dist-packages/opx-snmp
 
 
 
-core agent:                        /usr/sbin/SNMPAgent
+Core agent:                        /usr/sbin/SNMPAgent
 
 
 
@@ -95,7 +88,7 @@ core agent:                        /usr/sbin/SNMPAgent
 
 
 
-interface table
+-[Interface table]
 
 
 
