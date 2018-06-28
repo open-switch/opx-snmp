@@ -88,7 +88,7 @@ Core agent:                        /usr/sbin/SNMPAgent
 
 
 
--[Interface table]
+* Interface table
 
 
 
