@@ -2,7 +2,7 @@
 
 
 
-This document describes SNMP agent implementation for OPX.  The engine used is PySNMP, which is a lightweight Python-based extensible agent with rich functionality.  The agent implementation is also in Python. Version 2 is currently supported, and will continue to be the default version of the agent.  Version 3 support will be available in the next release. The infrastructure supports implementation of any number of standard and proprietary mibs, and users can extend it to support traps, snmpsets etc.
+This file describes the SNMP agent implementation for OpenSwitch OPX.  The engine used is PySNMP, which is a lightweight Python-based extensible agent with rich functionality.  The agent implementation is also available in Python. Version 2 is currently supported, and will continue to be the default version of the agent.  Version 3 support will be available in the next release. The infrastructure supports implementation of any number of standard and proprietary MIBs, and users can extend it to support traps, snmpsets, and so on.
 
 
 
@@ -80,7 +80,7 @@ Core agent:                        /usr/sbin/SNMPAgent
 
 
 
-## Implemented mibs:
+## Implemented MIBs:
 
 
 
@@ -106,16 +106,16 @@ Core agent:                        /usr/sbin/SNMPAgent
 
 1. Compile your standard or proprietary MIB using
 the compiler provided by PySNMP mibdump.py.  This generates an xyz-mib.py
-file, which is a pythonized form of the MIB that the PySNMP engine can
+file, which is a Python-ized form of the MIB that the PySNMP engine can
 understand.
 
-2. Place the generated xyz-mib.py file in the
+2. Place the generated xyz-mib.py file in a
 location known to PySNMP (in the /usr/lib/python2.7/dist-packages/opx-snmp
 directory). 
 
 3. Replace all references to MibTableColumn with CustomMibTableColumn
 in the generated xyz-mib.py file. Use the IF-MIB.py file in the same directory
-as an example. This step ensures that when a get or getnext request is
+as the example. This step ensures that when a get or getnext request is
 received, it is redirected to your custom function, so that you can call the
 appropriate handler routine.
 
