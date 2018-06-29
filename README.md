@@ -18,7 +18,7 @@ This file describes the SNMP agent implementation for OpenSwitch OPX.  The engin
 
 
 
-The SNMP agent code is organized into three areas-
+The SNMP agent code is organized into three areas:
 
 
 
@@ -26,15 +26,15 @@ The SNMP agent code is organized into three areas-
 
 
 
-Engine code — provided by PySNMP libraries and users
+* Engine code — provided by PySNMP libraries and users
 generally don’t make changes to it
 
-Core agent — single Python file SNMPAgent serves as
+* Core agent — single Python file SNMPAgent serves as
 the glue between the PySNMP engine and user-specific handlers that fetch data
 from the backend. When a user implements a new MIB, they can make minimal code
 changes (a few lines) here.
 
-Handlers — files contain all switch-specific code to get data
+* Handlers — files contain all switch-specific code to get data
 from the lower protocol layers of the switch. When new MIBs are introduced,
 this is where the bulk of the code changes are expected.
 
