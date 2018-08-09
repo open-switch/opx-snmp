@@ -9,6 +9,8 @@ from pysnmp.proto.api import v2c
 from pysnmp.proto.rfc1902 import Integer
 from pysnmp.hlapi import ObjectIdentity
 
+from ConfigParser import SafeConfigParser
+
 import struct
 import sys
 import os
@@ -32,6 +34,39 @@ is supported.  To be enhanced in future to compile and load any number of MIBs
 mibdir = '/usr/lib/python2.7/dist-packages/opx_snmp'
 mibdir1 = '/usr/local/lib/python2.7/dist-packages/pysnmp/smi/mibs/instances'
 
+# snmp v3 user configurations
+v3conf = '/etc/opx/snmp/snmpv3.conf'
+
+###########################################################################
+#
+# Convert authentication and encryption methods from string to enum
+#
+
+authDict = {
+    'usmNoAuthProtocol':config.usmNoAuthProtocol,
+    'usmHMACMD5AuthProtocol':config.usmHMACMD5AuthProtocol,
+    'usmHMACSHAAuthProtocol':config.usmHMACSHAAuthProtocol,
+    'usmHMAC128SHA224AuthProtocol':config.usmHMAC128SHA224AuthProtocol,
+    'usmHMAC192SHA256AuthProtocol':config.usmHMAC192SHA256AuthProtocol,
+    'usmHMAC256SHA384AuthProtocol':config.usmHMAC256SHA384AuthProtocol,
+    'usmHMAC384SHA512AuthProtocol':config.usmHMAC384SHA512AuthProtocol
+        }
+
+privDict = {
+    'usmNoPrivProtocol':config.usmNoPrivProtocol,
+    'usmDESPrivProtocol':config.usmDESPrivProtocol,
+    'usm3DESEDEPrivProtocol':config.usm3DESEDEPrivProtocol,
+    'usmAesCfb128Protocol':config.usmAesCfb128Protocol,
+    'usmAesCfb192Protocol':config.usmAesCfb192Protocol,
+    'usmAesCfb256Protocol':config.usmAesCfb256Protocol,
+    'usmAesBlumenthalCfb192Protocol':config.usmAesBlumenthalCfb192Protocol,
+    'usmAesBlumenthalCfb256Protocol':config.usmAesBlumenthalCfb256Protocol
+        }
+
+###########################################################################
+#
+# Load mibs
+#
 
 def loadMibs(mibBuilder, CustomMibTableColumn, CustomMibScalarInstance):
     g = {'mibBuilder': mibBuilder,
@@ -46,6 +81,68 @@ def loadMibs(mibBuilder, CustomMibTableColumn, CustomMibScalarInstance):
     for mib in ['__SNMPv2-MIB.py']:
     	execfile(os.path.abspath(mibdir1 + '/' + mib), g)
 
+###########################################################################
+#
+# Read version value from opx_snmp.conf file
+#
+
+def is_version_v3():
+    if not system.conf_file:
+        print 'no conf file existing'
+        sys_obj.exit(-1)
+    config = SafeConfigParser()
+    config.read(system.conf_file)
+    for version in [s for s in config.sections() if s.startswith('version')]:
+        return config.get(version, "v3")
+
+
+###########################################################################
+#
+# Add v2 users
+#
+
+def add_v1v2_users(snmpEngine):
+    # add a v2 user with the community string public
+
+    config.addV1System(snmpEngine, 'agent', 'public')
+
+    # let anyone accessing 'public' read anything in the subtree below,
+
+    config.addVacmUser(snmpEngine, 1, 'agent', 'noAuthNoPriv', readSubTree=(1,3,6,1,2,1))
+    config.addVacmUser(snmpEngine, 2, 'agent', 'noAuthNoPriv', readSubTree=(1,3,6,1,2,1))
+
+
+###########################################################################
+#
+# Add v3 users
+#
+
+def add_v3_users(snmpEngine):
+
+    with open(v3conf) as fh:
+        #skip initial comemnts
+        while True:
+            line = fh.readline()
+            if not line.startswith('#'):
+                break
+
+        while line:
+            v3list = line.split(",", 6)
+
+            if v3list[4] == 'none':
+                config.addV3User(snmpEngine, v3list[0],authDict[v3list[2]],v3list[3])
+            else:
+                config.addV3User(snmpEngine, v3list[0],authDict[v3list[2]],v3list[3],privDict[v3list[4]],v3list[5])
+
+            #allow approriate read and write MIB access for each user at VACM
+
+            oid = v3list[6].replace('(',' ').replace(')',' ').replace('\n',' ').split(',')
+            oid1 = [int(y) for y in oid]
+            config.addVacmUser(snmpEngine,3,v3list[0],v3list[1],tuple(oid1),tuple(oid1))
+            line = fh.readline()
+
+
+###########################################################################
 
 class SNMPAgent:
 
@@ -64,16 +161,12 @@ class SNMPAgent:
                                   udp.UdpTransport().openServerMode((''
                                   , 161)))
 
-        # add a v2 user with the community string public
-
-        config.addV1System(self._snmpEngine, 'agent', 'public')
-
-        # let anyone accessing 'public' read anything in the subtree below,
-
-        config.addVacmUser(self._snmpEngine, 1, 'agent', 'noAuthNoPriv'
-                           , readSubTree=(1,3,6,1,2,1))
-        config.addVacmUser(self._snmpEngine, 2, 'agent', 'noAuthNoPriv'
-                           , readSubTree=(1,3,6,1,2,1))
+        if (is_version_v3() == 'yes'):
+            print "SNMPAgent: version is v3"
+            add_v3_users(self._snmpEngine)
+        else:
+            print "SNMPAgent: version is v2"
+            add_v1v2_users(self._snmpEngine)
 
         # each app has one or more contexts
 
