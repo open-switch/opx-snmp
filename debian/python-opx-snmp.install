@@ -1,5 +1,5 @@
 sbin/*          /usr/sbin
-lib/python/*    /usr/lib/python2.7/dist-packages
+lib/python/*    /usr/local/lib/python2.7/dist-packages
 share/mibs/*    /usr/share/snmp/mibs
 snmp/*          /etc/opx/snmp
-tmp/*           /tmp
+

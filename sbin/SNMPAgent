@@ -31,7 +31,7 @@ is supported.  To be enhanced in future to compile and load any number of MIBs
 
 # Where (compiled) MIBs are kept
 
-mibdir = '/usr/lib/python2.7/dist-packages/opx_snmp'
+mibdir = '/usr/local/lib/python2.7/dist-packages/opx_snmp'
 mibdir1 = '/usr/local/lib/python2.7/dist-packages/pysnmp/smi/mibs/instances'
 
 # snmp v3 user configurations
