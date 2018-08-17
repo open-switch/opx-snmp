@@ -1,10 +1,18 @@
 #!/bin/sh
 
+# Replace the default __SNMPv2-MIB.py file in pysnmp package with the customized __SNMPv2-MIB.py
 dstdir="/usr/local/lib/python2.7/dist-packages/pysnmp/smi/mibs/instances"
 source="/tmp/__SNMPv2-MIB.py"
 if [ -f $source ]
 then
 	cp $source $dstdir
 fi
+
+# Ensure opx-pysnmp service is enabled
+if service opx-pysnmp status | grep disabled > /dev/null; then
+    service opx-pysnmp restart > /dev/null
+fi
+
+#DEBHELPER#
 
 exit 0
