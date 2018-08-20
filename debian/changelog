@@ -1,3 +1,11 @@
+opx-snmp (1.2.1) unstable; urgency=medium
+
+  * Update: Remove postinst script
+  * Update: Change install path for opx-snmp 
+  * Update: Replace the default __SNMPv2-MIB.py file in pysnmp package with the customized __SNMPv2-MIB.py
+
+ -- Dell EMC <ops-dev@lists.openswitch.net>  Fri, 17 Aug 2018 12:30:00 -0800
+
 opx-snmp (1.2.0) unstable; urgency=medium
 
   * Update: SNMP Version 3 implemented.  

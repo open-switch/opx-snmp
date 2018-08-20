@@ -9,4 +9,4 @@ Package: python-opx-snmp
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, python-opx-cps (>= 2.0.0), python-opx-logging (>= 2.0.0), libopx-nas-common1 (>= 6.1.0+opx3), libopx-nas-interface1 (>= 5.10.1+opx9), opx-nas-common (>= 6.1.0+opx3), opx-nas-interface (>= 5.10.1+opx9)
 Description: SNMP agent and handlers
-
+Replaces: pysnmp
