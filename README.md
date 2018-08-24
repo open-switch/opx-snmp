@@ -1,109 +1,28 @@
 # opx-snmp
-
-
-
 This file describes the SNMP agent implementation for OpenSwitch OPX.  The engine used is PySNMP, which is a lightweight Python-based extensible agent with rich functionality.  The agent implementation is also available in Python. Version 2 is currently supported, and will continue to be the default version of the agent.  Version 3 support will be available in the next release. The infrastructure supports implementation of any number of standard and proprietary MIBs, and users can extend it to support traps, snmpsets, and so on.
 
-
-
- 
-
-
-
 ## Code organization
-
-
-
- 
-
-
-
-The SNMP agent code is organized into three areas:
-
-
-
- 
-
-
-
+The SNMP agent code is organized into three areas:  
 * Engine code - provided by PySNMP libraries and users
 generally don't  make changes to it
-
 * Core agent - single Python file SNMPAgent serves as
 the glue between the PySNMP engine and user-specific handlers that fetch data
 from the backend. When a user implements a new MIB, they can make minimal code
 changes (a few lines) here.
-
 * Handlers - files contain all switch-specific code to get data
 from the lower protocol layers of the switch. When new MIBs are introduced,
 this is where the bulk of the code changes are expected.
 
-
-
-
-
-
-
- 
-
-
-
- 
-
-
-
 ## Code location on switch
+Compiled MIBS: /usr/lib/python2.7/dist-packages/opx-snmp
+Handlers: /usr/lib/python2.7/dist-packages/opx-snmp
+Handlers utilities: /usr/lib/python2.7/dist-packages/opx-snmp
+Core agent: /usr/sbin/SNMPAgent
 
-
-
- 
-
-
-
-Compiled MIBS:                 /usr/lib/python2.7/dist-packages/opx-snmp
-
-
-
-Handlers:                            /usr/lib/python2.7/dist-packages/opx-snmp
-
-
-
-Handlers utilities:              /usr/lib/python2.7/dist-packages/opx-snmp
-
-
-
-Core agent:                        /usr/sbin/SNMPAgent
-
-
-
- 
-
-
-
-## Implemented MIBs:
-
-
-
- 
-
-
-
+## Implemented MIBs
 * Interface table
 
-
-
- 
-
-
-
 ## Add your own MIB
-
-
-
- 
-
-
-
 1. Compile your standard or proprietary MIB using
 the compiler provided by PySNMP mibdump.py.  This generates an xyz-mib.py
 file, which is a Python-ized form of the MIB that the PySNMP engine can
@@ -140,24 +59,5 @@ do this.
 8. Restart the agent. You should now be able to
 do snmpget, snmpgetnext, and snmpwalk on this agent.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
+(c) 2018 Dell Inc. or its subsidiaries. All Rights Reserved.
 
