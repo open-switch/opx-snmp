@@ -37,33 +37,6 @@ def if_name_get(idx, nextf):
     
 ###########################################################################
 #
-# Map the NAS name of an interface to the SNMP name
-#
-
-def if_name_map(nm):
-    if nm is None:
-        return None
-    if nm.find('null') == 0 or nm.find('npu') == 0:
-        return nm
-    if nm.find('eth') == 0:
-        return 'mgmt1/1/{0}'.format(int(nm[3:]) + 1)
-    if nm.find('br') == 0:
-        return nm.replace('br', 'vlan', 1)
-    if nm.find('bond') == 0:
-        return nm.replace('bond', 'port-channel', 1)
-    if nm.find('lo') == 0:
-        return nm.replace('lo', 'loopback', 1)
-    s = nm.split('-')
-    result = 'ethernet{0}/{1}/{2}'.format(int(s[0][1], 16),
-                                          s[0][2:].lstrip('0'),
-                                          s[1].lstrip('0')
-    )
-    if len(s) > 2 and s[2] != '0':
-        result += ':' + s[2].lstrip('0')
-    return result
-
-###########################################################################
-#
 # Helper functions for forming handler results
 #
 
@@ -117,17 +90,17 @@ def if_idx_get_next(module, name):
 
 def if_descr_get(module, name):
     r = if_name_get(name[-1], False)
-    return None if r is None else result_get(name, (r[0], v2c.OctetString(if_name_map(r[1]))))
+    return None if r is None else result_get(name, (r[0], v2c.OctetString(r[1])))
 
 
 def if_descr_get_first(module, name):
     r = if_name_get(None, True)
-    return None if r is None else result_get_first(name, (r[0], v2c.OctetString(if_name_map(r[1]))))
+    return None if r is None else result_get_first(name, (r[0], v2c.OctetString(r[1])))
 
 
 def if_descr_get_next(module, name):
     r = if_name_get(name[-1], True)
-    return None if r is None else result_get_next(name, (r[0], v2c.OctetString(if_name_map(r[1]))))
+    return None if r is None else result_get_next(name, (r[0], v2c.OctetString(r[1])))
 
 ###########################################################################
 #
