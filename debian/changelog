@@ -1,3 +1,9 @@
+opx-snmp (1.2.3) unstable; urgency=medium
+
+  * Bugfix: Fixed issue where OID not increasing during snmpwalk of interface MIB
+
+ -- Dell EMC <ops-dev@lists.openswitch.net>  Tue, 03 Mar 2020 04:54:22 -0800
+
 opx-snmp (1.2.2) unstable; urgency=medium
 
   * Update: Display interface names in the same format as linux 
