@@ -19,18 +19,9 @@ from opx_snmp.handler_utils import *
 #
 
 def if_name_get(idx, nextf):
-    k = {}
-    if idx is not None:
-        k['dell-base-if-cmn/if/interfaces/interface/if-index'] = idx
-    if nextf:
-        k['cps/object-group/get-next'] = 1
-    r = cps_get('target',
-                'dell-base-if-cmn/if/interfaces/interface',
-                k
-                )
-    if r is None or len(r) == 0:
+    r = cps_get_if(idx, nextf)
+    if not r:
         return None
-    r = r[0]
     return (cps_key_attr_data_get(r, 'dell-base-if-cmn/if/interfaces/interface/if-index'),
             cps_key_attr_data_get(r, 'if/interfaces/interface/name')
             )
@@ -55,18 +46,10 @@ def result_get_next(name, pr):
 #
 
 def _if_idx_get(idx, nextf):
-    k = {}
-    if idx is not None:
-        k['dell-base-if-cmn/if/interfaces/interface/if-index'] = idx
-    if nextf:
-        k['cps/object-group/get-next'] = 1
-    r = cps_get('target',
-                'dell-base-if-cmn/if/interfaces/interface',
-                k
-                )
-    if r is None or len(r) == 0:
+    r = cps_get_if(idx, nextf)
+    if not r:
         return None
-    return cps_key_attr_data_get(r[0], 'dell-base-if-cmn/if/interfaces/interface/if-index')
+    return cps_key_attr_data_get(r, 'dell-base-if-cmn/if/interfaces/interface/if-index')
 
 
 def if_idx_get(module, name):
@@ -128,18 +111,9 @@ if_type_map = {"ianaift:ethernetCsmacd":   IANAIFTYPE_ETHERNETCSMACD,
 
 
 def _if_type_get(idx, nextf):
-    k = {}
-    if idx is not None:
-        k['dell-base-if-cmn/if/interfaces/interface/if-index'] = idx
-    if nextf:
-        k['cps/object-group/get-next'] = 1
-    r = cps_get('target',
-                'dell-base-if-cmn/if/interfaces/interface',
-                k
-                )
-    if r is None or len(r) == 0:
+    r = cps_get_if(idx, nextf)
+    if not r:
         return None
-    r = r[0]
     return (cps_key_attr_data_get(r, 'dell-base-if-cmn/if/interfaces/interface/if-index'),
             Integer(if_type_map.get(cps_attr_data_get(r, 'if/interfaces/interface/type') , IANAIFTYPE_OTHER))
             )
@@ -162,17 +136,9 @@ def if_type_get_next(module, name):
 #
 
 def _if_mtu_get(idx, nextf):
-    k = {}
-    if idx is not None:
-        k['dell-base-if-cmn/if/interfaces/interface/if-index'] = idx
-    if nextf:
-        k['cps/object-group/get-next'] = 1
-    r = cps_get('target',
-                'dell-base-if-cmn/if/interfaces/interface',
-                k)
-    if r is None or len(r) == 0:
+    r = cps_get_if(idx, nextf)
+    if not r:
         return None
-    r = r[0]
     mtu = cps_attr_data_get(r, 'dell-if/if/interfaces/interface/mtu')
     if mtu is None:
         mtu = 0
@@ -232,18 +198,9 @@ def if_speed_get_next(module, name):
 #
 
 def _if_phys_addr_get(idx, nextf):
-    k = {}
-    if idx is not None:
-        k['dell-base-if-cmn/if/interfaces/interface/if-index'] = idx
-    if nextf:
-        k['cps/object-group/get-next'] = 1
-    r = cps_get('target',
-                'dell-base-if-cmn/if/interfaces/interface',
-                k
-                )
-    if r is None or len(r) == 0:
+    r = cps_get_if(idx, nextf)
+    if not r:
         return None
-    r = r[0]
     phys_addr = cps_attr_data_get(r, 'dell-if/if/interfaces/interface/phys-address');
     if phys_addr is None:
         phys_addr = ''
@@ -493,6 +450,56 @@ def if_out_errors_get_next(module, name):
 
 def if_deprecated(module, name):
     return None
+
+def cps_get_if(idx, nextf):
+    ''' 
+    Wrapper function get interface details via CPS. 
+    Get all interfaces and return whichever is required
+
+    NOTE: We can use cps/object-group/get-next for get-next, but
+    it is not honoured by nas backend so we simply get all 
+    interfaces
+    '''
+    k = {}
+    if idx is not None and not nextf:
+        # get exact idx
+        k['dell-base-if-cmn/if/interfaces/interface/if-index'] = idx        
+    r = cps_get('target',
+                'dell-base-if-cmn/if/interfaces/interface',
+                k
+                )
+
+    if not r:
+        return None
+
+    if idx is None:
+        # get-first
+        r = get_next_if_from_cpslist(r, idx)
+    elif idx is not None and nextf:
+        # get-next
+        r = get_next_if_from_cpslist(r, idx)
+    else:
+        # get exact idx
+        r = r[0]
+
+    return r
+
+def get_next_if_from_cpslist(intf_list, idx):
+    ''' 
+    Get the next interface entry for the given interface index
+    Sort them based on interface index
+    '''
+    sorted_list = sorted(intf_list, key = lambda i: cps_key_attr_data_get(i, 'dell-base-if-cmn/if/interfaces/interface/if-index'))
+    if not idx:
+        # get-first
+        return sorted_list[0]
+    filtered = [i for i in sorted_list 
+                    if cps_key_attr_data_get(i, 'dell-base-if-cmn/if/interfaces/interface/if-index') > idx]
+
+    if not filtered:
+        return None
+
+    return filtered[0]
 
 ###########################################################################
 #
