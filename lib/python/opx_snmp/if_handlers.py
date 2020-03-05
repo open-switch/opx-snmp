@@ -474,7 +474,7 @@ def cps_get_if(idx, nextf):
 
     if idx is None:
         # get-first
-        r = r[0]
+        r = get_next_if_from_cpslist(r, idx)
     elif idx is not None and nextf:
         # get-next
         r = get_next_if_from_cpslist(r, idx)
@@ -490,6 +490,9 @@ def get_next_if_from_cpslist(intf_list, idx):
     Sort them based on interface index
     '''
     sorted_list = sorted(intf_list, key = lambda i: cps_key_attr_data_get(i, 'dell-base-if-cmn/if/interfaces/interface/if-index'))
+    if not idx:
+        # get-first
+        return sorted_list[0]
     filtered = [i for i in sorted_list 
                     if cps_key_attr_data_get(i, 'dell-base-if-cmn/if/interfaces/interface/if-index') > idx]
 
