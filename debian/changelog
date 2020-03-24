@@ -1,3 +1,9 @@
+opx-snmp (1.2.4) unstable; urgency=medium
+
+  * Bugfix: Fixed SNMPAgent crash issue when queried for unknown OID 
+
+ -- Dell EMC <ops-dev@lists.openswitch.net>  Thu, 19 Mar 2020 22:34:40 -0700
+
 opx-snmp (1.2.3) unstable; urgency=medium
 
   * Bugfix: Fixed issue where OID not increasing during snmpwalk of interface MIB
